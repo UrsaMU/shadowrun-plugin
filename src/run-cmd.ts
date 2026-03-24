@@ -6,6 +6,7 @@ import { runs, getRun, saveRun, getNextRunNumber, getActiveRun } from "./run-db.
 import type { IShadowrunRun, IRunRosterEntry, IRunAwardEntry } from "./run-db.ts";
 import { getChar } from "./db.ts";
 import { awardKarma } from "./chargen/karma-ops.ts";
+import { validateRunBonusKarma } from "./sr4/karma.ts";
 
 const MAX_RUN_NAME    = 80;
 const MAX_RUN_SUMMARY = 500;
@@ -300,7 +301,10 @@ async function awardRun(u: IUrsamuSDK, arg: string): Promise<void> {
   const reason   = afterEq.slice(spaceIdx2 + 1).trim();
   const karma    = parseInt(karmaStr, 10);
 
-  if (isNaN(karma) || karma < 1) { u.send("Karma must be a positive integer."); return; }
+  // L2 FIX: apply same upper cap as +karma/award so the run-award path cannot
+  // bypass the karma ceiling enforced everywhere else in the system.
+  const karmaErr = validateRunBonusKarma(karma);
+  if (karmaErr) { u.send(karmaErr); return; }
   if (!reason) { u.send("Reason is required."); return; }
 
   const run = await getRun(num);

@@ -9,10 +9,10 @@
 import { addCmd } from "@ursamu/ursamu";
 import type { IUrsamuSDK } from "@ursamu/ursamu";
 import { getChar, saveChar } from "./db.ts";
-import { rollPool } from "./sr4/dice.ts";
+import { rollPool, validateAttackPool } from "./sr4/dice.ts";
 import {
   woundModifier, armorVsAP, damageType, resolveCombat,
-  resistPool, formatCombatResult,
+  resistPool, formatCombatResult, validateCustomWeapon,
 } from "./sr4/combat.ts";
 import type { IWeaponProfile } from "./sr4/combat.ts";
 
@@ -92,6 +92,9 @@ function parseWeapon(arg: string): IWeaponProfile | null {
     const ap = parseInt(parts[1], 10);
     const dc = parts[2].toUpperCase();
     if (!isNaN(dv) && !isNaN(ap) && (dc === "P" || dc === "S")) {
+      // M2 FIX: validate DV/AP bounds before accepting custom weapon profile.
+      const weapErr = validateCustomWeapon(dv, ap);
+      if (weapErr) return null; // treated as unknown weapon → caller shows error
       return { name: `Custom (DV ${dv}, AP ${ap})`, dv, ap, damageCode: dc as "P" | "S" };
     }
   }
@@ -126,6 +129,9 @@ async function resolveAttack(u: IUrsamuSDK, raw: string, fullDefence: boolean): 
       // weapon/pool override
       const maybePool = parseInt(weaponPart.slice(slashIdx + 1), 10);
       if (!isNaN(maybePool)) {
+        // C2 FIX: validate pool override before use to prevent DoS via huge arrays.
+        const poolErr = validateAttackPool(maybePool);
+        if (poolErr) { u.send(poolErr); return; }
         weaponKey    = weaponPart.slice(0, slashIdx);
         poolOverride = maybePool;
       }

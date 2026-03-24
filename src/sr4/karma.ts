@@ -47,6 +47,18 @@ export function skillGroupAdvanceCost(from: number, to: number, numSkills: numbe
 
 // ── validation functions ──────────────────────────────────────────────────────
 
+/**
+ * Validate a bonus karma award issued via +run/award.
+ * L2 FIX: Applies the same upper cap as +karma/award (MAX_KARMA_AWARD) so an
+ * admin cannot grant unbounded karma through the run-award path.
+ * Returns an error string, or null if valid.
+ */
+export function validateRunBonusKarma(karma: number): string | null {
+  if (!Number.isInteger(karma) || karma < 1) return "Karma must be a positive integer.";
+  if (karma > MAX_KARMA_AWARD) return `Karma award cannot exceed ${MAX_KARMA_AWARD}.`;
+  return null;
+}
+
 /** Returns null if valid, or an error string to show the player. */
 export function validateKarmaAdvanceSkill(
   char: IShadowrunChar,

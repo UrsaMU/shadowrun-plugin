@@ -119,6 +119,25 @@ export function resistPool(
   return type === "physical" ? body + modifiedArmour : body;
 }
 
+/** Maximum DV for a custom weapon profile (generous ceiling; highest canonical SR4 weapon is ~16). */
+export const MAX_CUSTOM_DV = 30;
+/** Most negative AP allowed (most aggressive canonical AP is −6; −20 leaves room for houserules). */
+export const MIN_CUSTOM_AP = -20;
+
+/**
+ * Validate a user-supplied custom weapon profile (DV and AP).
+ * M2 FIX: prevents +attack Alice=9999/-9999/P from storing an arbitrary large
+ * appliedDV directly onto the defender's damage track.
+ * Returns an error string, or null if valid.
+ */
+export function validateCustomWeapon(dv: number, ap: number): string | null {
+  if (!Number.isInteger(dv) || dv < 1) return "Custom weapon DV must be a positive integer.";
+  if (dv > MAX_CUSTOM_DV) return `Custom weapon DV cannot exceed ${MAX_CUSTOM_DV}.`;
+  if (!Number.isInteger(ap) || ap > 0) return "Custom weapon AP must be 0 or a negative integer.";
+  if (ap < MIN_CUSTOM_AP) return `Custom weapon AP cannot be less than ${MIN_CUSTOM_AP}.`;
+  return null;
+}
+
 /**
  * Format a combat result into a readable output string.
  */

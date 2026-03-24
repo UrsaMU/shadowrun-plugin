@@ -105,6 +105,19 @@ export function summarize(dice: number[]): DiceResult {
   return { dice, hits, ones, glitch, critGlitch };
 }
 
+/**
+ * Validate a user-supplied attack pool override.
+ * Returns null when pool is null (meaning "use char-sheet value") or when the
+ * value passes validatePoolSize(). Returns an error string otherwise.
+ *
+ * C2 FIX: Ensures +attack <target>=<weapon>/<pool> cannot bypass the DoS guard
+ * that was already in place for +roll and +extend.
+ */
+export function validateAttackPool(pool: number | null): string | null {
+  if (pool === null) return null;
+  return validatePoolSize(pool);
+}
+
 /** Physical damage track boxes: ceil(Body / 2) + 8. */
 export function physBoxes(body: number): number {
   return Math.ceil(Math.max(1, body) / 2) + 8;
