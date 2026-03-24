@@ -5,6 +5,7 @@ import { gameHooks, registerPluginRoute } from "@ursamu/ursamu";
 import type { IPlugin, SessionEvent } from "@ursamu/ursamu";
 import { registerJobBuckets } from "@ursamu/jobs-plugin";
 import { getChar } from "./db.ts";
+import { seedSr4GameSystem } from "./sr4-game-system.ts";
 
 // Named reference required for remove() to off() the same function.
 const onLogin = async ({ actorId, actorName }: SessionEvent): Promise<void> => {
@@ -29,6 +30,10 @@ const shadowrunPlugin: IPlugin = {
 
     gameHooks.on("player:login", onLogin);
     registerPluginRoute("/api/v1/shadowrun", routeHandler);
+
+    // Seed SR4 system into the shared ai-gm DBO and emit gm:system:register
+    // so a running ai-gm instance picks it up without a restart.
+    await seedSr4GameSystem();
 
     console.log("[shadowrun] Initialized — +chargen/+sheet/+roll/+damage active.");
     return true;

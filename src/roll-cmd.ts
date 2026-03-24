@@ -1,10 +1,11 @@
 // ─── +roll command ────────────────────────────────────────────────────────────
 
-import { addCmd } from "@ursamu/ursamu";
+import { addCmd, gameHooks } from "@ursamu/ursamu";
 import type { IUrsamuSDK } from "@ursamu/ursamu";
 import { rollPool, rollEdge, validatePoolSize } from "./sr4/dice.ts";
 import type { DiceResult } from "./sr4/dice.ts";
 import { appendRollLog } from "./rolllog-db.ts";
+import type { ISrRollEvent } from "./game-hooks-augment.ts";
 
 addCmd({
   name: "+roll",
@@ -67,6 +68,12 @@ Examples:
         threshold: thresh ?? undefined,
         success: thresh !== null ? result.totalHits >= thresh : undefined,
       }).catch(() => {});
+      emitRollEvent(u, {
+        pool, hits: result.totalHits,
+        glitch: result.initial.glitch, critGlitch: result.initial.critGlitch,
+        edgeUsed: true, threshold: thresh ?? undefined,
+        success: thresh !== null ? result.totalHits >= thresh : undefined,
+      });
       return;
     }
 
@@ -91,8 +98,34 @@ Examples:
       threshold: thresh ?? undefined,
       success: thresh !== null ? result.hits >= thresh : undefined,
     }).catch(() => {});
+    emitRollEvent(u, {
+      pool, hits: result.hits,
+      glitch: result.glitch, critGlitch: result.critGlitch,
+      edgeUsed: false, threshold: thresh ?? undefined,
+      success: thresh !== null ? result.hits >= thresh : undefined,
+    });
   },
 });
+
+// ─── ai-gm bridge ─────────────────────────────────────────────────────────────
+
+/**
+ * Emit `shadowrun:roll` on the shared gameHooks bus so ai-gm can inject
+ * the result into the current round context. Fire-and-forget — errors
+ * are swallowed so a missing ai-gm installation never breaks +roll.
+ */
+function emitRollEvent(
+  u: IUrsamuSDK,
+  data: Omit<ISrRollEvent, "playerId" | "playerName" | "roomId">,
+): void {
+  const payload: ISrRollEvent = {
+    playerId: u.me.id,
+    playerName: u.util.displayName(u.me, u.me),
+    roomId: u.here.id,
+    ...data,
+  };
+  gameHooks.emit("shadowrun:roll" as never, payload as never).catch(() => {});
+}
 
 /** Format the dice array with color-coded hits and ones. */
 function formatDice(r: DiceResult): string {

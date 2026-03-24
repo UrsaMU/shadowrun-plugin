@@ -1,6 +1,6 @@
 {
   "name": "@ursamu/shadowrun-plugin",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Shadowrun 4th Edition 20th Anniversary plugin for UrsaMU — chargen, dice, damage tracking, gear catalogue with auto armor/RC computation.",
   "exports": "./mod.ts",
   "publish": {
