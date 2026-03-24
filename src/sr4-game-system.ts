@@ -29,6 +29,8 @@ interface IStoredGameSystem {
   missConsequenceHint: string;
   categories: string[];
   statsByCategory: Record<string, string[]>;
+  // DBO collection for character sheets (overrides ai-gm default)
+  charCollection?: string;
 }
 
 // ─── Shared DBO — same namespace ai-gm reads on startup ──────────────────────
@@ -146,6 +148,8 @@ FICTION FIRST
     "Attributes": CORE_ATTRS,
     "Special": SPECIAL_ATTRS,
   },
+  // SR4 characters live in shadowrun.chars, not the Urban Shadows default.
+  charCollection: "shadowrun.chars",
 };
 
 // ─── Public API ───────────────────────────────────────────────────────────────

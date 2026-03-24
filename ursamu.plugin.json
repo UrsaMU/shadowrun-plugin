@@ -1,7 +1,7 @@
 {
   "name": "shadowrun",
   "displayName": "Shadowrun 4E",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Shadowrun 4th Edition 20th Anniversary plugin for UrsaMU.",
   "entry": "./index.ts"
 }
